@@ -40,9 +40,10 @@ structure isGraphPolytopeGenerated
 
 
 --this lemma should not be proved since in current mathlib this should not be a problem?
-lemma patch (R : Type u_1) {X : Type u_2} [Semiring R] [PartialOrder R] [IsStrictOrderedRing R] [AddCommMonoid X]
-  [Module R X]
-  [ConvexSpace R X] (S : Set X) : Convexity.convexHull R S = _root_.convexHull R S := sorry
+lemma patch (R : Type u_1) {X : Type u_2} [Semiring R] [PartialOrder R]
+  [IsStrictOrderedRing R] [AddCommMonoid X] [Module R X]
+  [ConvexSpace R X] (S : Set X) :
+  Convexity.convexHull R S = _root_.convexHull R S := sorry
 
 omit [IsModuleConvexSpace ℝ X] in
 lemma VertexInPolytope {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V}
@@ -116,8 +117,8 @@ lemma vectorSpan_of_convexHull (S : Set X) :
     exact tt
   · specialize h1 p
     apply h1
-    have : S -ᵥ S ⊆ (_root_.convexHull ℝ) S -ᵥ (_root_.convexHull ℝ) S :=
-    Set.vsub_subset_vsub (subset_convexHull ℝ S ) (subset_convexHull ℝ S )
+    have : S -ᵥ S ⊆ (_root_.convexHull ℝ) S -ᵥ (_root_.convexHull ℝ) S
+    := Set.vsub_subset_vsub (subset_convexHull ℝ S ) (subset_convexHull ℝ S )
     grind
 
 theorem balinski_1 {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
@@ -128,8 +129,10 @@ theorem balinski_1 {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV :
   rw[← hG.h_carrier, vectorSpan_of_convexHull]
   have : ↑V = Finset.image id V := by simp
   rw[this]
-  have hn0 :  1 ≤ n := by simp[n]; exact hV
-  have := finrank_vectorSpan_image_finset_le ℝ id V (n := n - 1) (by unfold n at *; simp at this ⊢;grind)
+  have hn0 :  1 ≤ n := by simp only [Nat.card_eq_fintype_card, Fintype.card_coe,
+    Finset.one_le_card, n] ; exact hV
+  have
+  := finrank_vectorSpan_image_finset_le ℝ id V (n := n - 1) (by unfold n at *; simp at this ⊢;grind)
   grind
 
 theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
