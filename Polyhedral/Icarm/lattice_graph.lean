@@ -4,6 +4,7 @@ import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Analysis.Convex.Extreme
 import Mathlib.Analysis.Convex.Segment
 import Mathlib.Analysis.Convex.Hull
+import Mathlib.Geometry.Convex.Set
 import Polyhedral.Polyhedral.Basic
 import Polyhedral.Polyhedral.Faces
 import Polyhedral.Mathlib.Geometry.Convex.ConvexSpace.Polytope.Face
@@ -26,6 +27,7 @@ variable
   [ConvexSpace ℝ X]
   [AddCommGroup X]
   [Module ℝ X]
+  [IsModuleConvexSpace ℝ X]
 
 structure isGraphPolytopeGenerated
     (P : Polytope ℝ X) (V : Finset X) (G : SimpleGraph V) : Prop where
@@ -34,16 +36,36 @@ structure isGraphPolytopeGenerated
     G.Adj ⟨i,hi⟩ ⟨j,hj⟩ ↔
     Convexity.IsExtreme ℝ P.carrier [i -[ℝ] j]
 
-lemma vectorSpan_of_convexHull (S : Set X) : vectorSpan ℝ (_root_.convexHull ℝ S) = (vectorSpan ℝ S) := by
+lemma patch (R : Type u_1) {X : Type u_2} [Semiring R] [PartialOrder R] [IsStrictOrderedRing R] [AddCommMonoid X]
+  [Module R X]
+  [ConvexSpace R X] (S : Set X) : Convexity.convexHull R S = _root_.convexHull R S := sorry
+
+lemma convex_vsub_comm (S : Set X) [IsModuleConvexSpace ℝ X] :
+(_root_.convexHull ℝ (S -ᵥ S)) = (_root_.convexHull ℝ S)-ᵥ (_root_.convexHull ℝ S) := by
+  ext x ; constructor <;> intros h
+  · rw [Set.mem_vsub] at ⊢
+    rw[mem_convexHull_iff_exists_fintype] at h
+    sorry
+  · rw[Set.mem_vsub] at h
+    rw [@mem_convexHull_iff_exists_fintype]
+    sorry
+
+lemma vectorSpan_of_convexHull (S : Set X) :
+ vectorSpan ℝ  (_root_.convexHull ℝ S) = (vectorSpan ℝ S) := by
   ext x ; unfold vectorSpan
   simp only [Submodule.mem_span]
   constructor <;> intro h1 p h2
+  · rw[← convex_vsub_comm] at h1
+    specialize h1 p
+    apply h1
+    have : IsConvexSet ℝ (X := X) p :=by apply p.isConvexSet
+    have tt := (IsConvexSet.convexHull_subset_iff (this) (s := S -ᵥ S)).2 h2
+    rw[patch] at tt
+    exact tt
   · specialize h1 p
     apply h1
-    sorry
-  · specialize h1 p
-    apply h1
-    sorry
+    have : S -ᵥ S ⊆ (_root_.convexHull ℝ) S -ᵥ (_root_.convexHull ℝ) S := Set.vsub_subset_vsub (subset_convexHull ℝ S ) (subset_convexHull ℝ S )
+    grind
 
 theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
 (hG : isGraphPolytopeGenerated X P V G) :
