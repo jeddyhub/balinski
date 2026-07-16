@@ -163,14 +163,16 @@ theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : F
             sorry
           have hv1 : v₁ ∈ S₁ ∩ S₂ := by
             grind
-          apply Union_of_two_connected_subgraphs
-          · sorry
+          apply Union_of_two_connected_subgraphs (induce (↑S)ᶜ G)
+            {v | c ≤ f v} {v | f v ≤ c}
+          · intro v
+            grind
           · use ⟨v₁,hv⟩
-            sorry --is exacly hv1 but type mismatch
+            constructor
+            · simp only [Set.mem_setOf_eq]
+              rw[hf.1]
+            simp only [Set.mem_setOf_eq]
+            rw[hf.1]
           · sorry --is exactly h1 but type mismatch
           · sorry --is exactly h2 but type mismatch
-          · sorry --type mismatch
-          sorry --type mismatch
-
-
 end
