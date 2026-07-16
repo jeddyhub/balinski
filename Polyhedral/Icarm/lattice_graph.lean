@@ -19,7 +19,7 @@ open Convexity ConvexSet Affine
 variable [AddCommGroup V] [Module ℝ V] [AddTorsor V A]
 
 noncomputable def dimPolytope (C : Set A) : ℕ :=
-  Module.finrank ℝ (vectorSpan ℝ C)
+  Module.finrank ℝ (vectorSpan ℝ C) --(affineSpan ℝ C).direction
 section
 
 variable
