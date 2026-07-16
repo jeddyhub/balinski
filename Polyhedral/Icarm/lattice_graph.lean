@@ -23,7 +23,7 @@ noncomputable def dimPolytope (C : Set A) : ℕ :=
 section
 
 variable
-  (X : Type*)
+  {X : Type*}
   [ConvexSpace ℝ X]
   [AddCommGroup X]
   [Module ℝ X]
@@ -36,10 +36,12 @@ structure isGraphPolytopeGenerated
     G.Adj ⟨i,hi⟩ ⟨j,hj⟩ ↔
     Convexity.IsExtreme ℝ P.carrier [i -[ℝ] j]
 
+--this lemma should not be proved since in current mathlib this should not be a problem?
 lemma patch (R : Type u_1) {X : Type u_2} [Semiring R] [PartialOrder R] [IsStrictOrderedRing R] [AddCommMonoid X]
   [Module R X]
   [ConvexSpace R X] (S : Set X) : Convexity.convexHull R S = _root_.convexHull R S := sorry
 
+--an ai should prove this lol
 lemma convex_vsub_comm (S : Set X) [IsModuleConvexSpace ℝ X] :
 (_root_.convexHull ℝ (S -ᵥ S)) = (_root_.convexHull ℝ S)-ᵥ (_root_.convexHull ℝ S) := by
   ext x ; constructor <;> intros h
@@ -67,21 +69,26 @@ lemma vectorSpan_of_convexHull (S : Set X) :
     have : S -ᵥ S ⊆ (_root_.convexHull ℝ) S -ᵥ (_root_.convexHull ℝ) S := Set.vsub_subset_vsub (subset_convexHull ℝ S ) (subset_convexHull ℝ S )
     grind
 
+theorem balinski_1 {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
+(hG : isGraphPolytopeGenerated P V G) : dimPolytope P.carrier < Nat.card ↥V := by
+  classical
+  unfold dimPolytope
+  set n := Nat.card V
+  rw[← hG.h_carrier, vectorSpan_of_convexHull]
+  have : ↑V = Finset.image id V := by simp
+  rw[this]
+  have hn0 :  1 ≤ n := by simp[n] ; exact hV
+  have := finrank_vectorSpan_image_finset_le ℝ id V (n := n - 1) (by unfold n at *; simp at this ⊢;grind)
+  grind
+
 theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
-(hG : isGraphPolytopeGenerated X P V G) :
+(hG : isGraphPolytopeGenerated P V G) :
   IsVertexConnected G (dimPolytope (V := X) (P.carrier))
     := by
         classical
         unfold IsVertexConnected
         constructor
-        · unfold dimPolytope
-          set n := Nat.card V
-          rw[← hG.h_carrier, vectorSpan_of_convexHull]
-          have : ↑V = Finset.image id V := by simp
-          rw[this]
-          have hn0 :  1 ≤ n := by simp[n] ; exact hV
-          have := finrank_vectorSpan_image_finset_le ℝ id V (n := n - 1) (by unfold n at *; simp at this ⊢;grind)
-          grind
+        · exact balinski_1 hV hG
         · intros S H
           simp only [connected_iff_exists_forall_reachable]
           have v₁ : @Set.Elem (↥V) (↑S)ᶜ := sorry
