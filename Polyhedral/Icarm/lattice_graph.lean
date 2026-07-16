@@ -104,7 +104,7 @@ lemma convex_vsub_comm (S : Set X) :
     intro A B; ext x; simp [Set.mem_vsub, Set.mem_sub, vsub_eq_sub]
   rw [hvsub, hvsub, convexHull_sub]
 
-omit [TopologicalSpace X]
+omit [TopologicalSpace X] in
 lemma vectorSpan_of_convexHull (S : Set X) :
  vectorSpan ℝ  (_root_.convexHull ℝ S) = (vectorSpan ℝ S) := by
   ext x ; unfold vectorSpan
@@ -123,6 +123,7 @@ lemma vectorSpan_of_convexHull (S : Set X) :
     := Set.vsub_subset_vsub (subset_convexHull ℝ S ) (subset_convexHull ℝ S )
     grind
 
+omit [TopologicalSpace X] in
 theorem balinski_1 {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
 (hG : isGraphPolytopeGenerated P V G) : dimPolytope P.carrier < Nat.card ↥V := by
   classical
@@ -146,16 +147,30 @@ theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : F
         constructor
         · exact balinski_1 hV hG
         · intros S H
-          simp only [connected_iff_exists_forall_reachable]
-          have v₁ : @Set.Elem (↥V) (↑S)ᶜ := sorry
-          apply Exists.intro v₁
-          · intro w
-            unfold Reachable
-            constructor
-            constructor
-            · sorry
-            · sorry
-            · sorry
+          have v₁ : @Set.Elem (↥V) (↑S)ᶜ := sorry --Cardinality argument (apply H + balinski_1)
+          obtain ⟨v₁, hv⟩ := v₁
+          have hf : ∃ f : StrongDual ℝ X, ∃ c : ℝ, (f v₁ = c ∧ (∀ s ∈ S, f s = c)):= sorry
+          obtain ⟨f, c, hf⟩ := hf
+          set S₁ := {v : V | v ∉ S ∧ c ≤ f v}
+          set S₂ := {v : V | v ∉ S ∧ f v ≤ c}
+          have h1 : (G.induce S₁).Connected := by
+            /-Show that f is maximized on a face, the graph of face is connected as it is a
+            polytope, every other vertex has path to face by IncreasingLemma, apply
+            Subgraph_Connected_Reachable_Implies_Connected -/
+            sorry
+          have h2 : (G.induce S₂).Connected := by
+            /-Apply proof of h1 to -f -/
+            sorry
+          have hv1 : v₁ ∈ S₁ ∩ S₂ := by
+            grind
+          apply Union_of_two_connected_subgraphs
+          · sorry
+          · use ⟨v₁,hv⟩
+            sorry --is exacly hv1 but type mismatch
+          · sorry --is exactly h1 but type mismatch
+          · sorry --is exactly h2 but type mismatch
+          · sorry --type mismatch
+          sorry --type mismatch
 
 
 end
