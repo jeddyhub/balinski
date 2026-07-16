@@ -96,6 +96,7 @@ lemma IncreasingPathLemma {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V
     · exact ⟨(t : X), t.2, hx2 t hc.ne', by grind⟩
     exact absurd (hx1 t) (not_le.mpr hc)
 
+omit [ConvexSpace ℝ X] [TopologicalSpace X] in
 open scoped Pointwise in
 lemma convex_vsub_comm (S : Set X) :
     (_root_.convexHull ℝ (S -ᵥ S)) = (_root_.convexHull ℝ S) -ᵥ (_root_.convexHull ℝ S) := by
@@ -103,6 +104,7 @@ lemma convex_vsub_comm (S : Set X) :
     intro A B; ext x; simp [Set.mem_vsub, Set.mem_sub, vsub_eq_sub]
   rw [hvsub, hvsub, convexHull_sub]
 
+omit [TopologicalSpace X]
 lemma vectorSpan_of_convexHull (S : Set X) :
  vectorSpan ℝ  (_root_.convexHull ℝ S) = (vectorSpan ℝ S) := by
   ext x ; unfold vectorSpan
