@@ -71,7 +71,7 @@ theorem IsVertexConnected'.toIsVertexConnected {G : SimpleGraph V} {k : ℕ}
     by_cases hab : a = b
     · subst hab; exact Reachable.refl a
     · have hab' : (a : V) ≠ (b : V) := fun hh => hab (Subtype.ext hh)
-      obtain ⟨f, hf_inj, hf_disj⟩ := hpaths (a : V) (b : V) hab'
+      obtain ⟨f, _, hf_disj⟩ := hpaths (a : V) (b : V) hab'
       have ha_s : (a : V) ∉ s := by apply a.2
       have hb_s : (b : V) ∉ s := by apply b.2
       -- Pigeonhole: some path avoids `s`.
@@ -108,4 +108,52 @@ theorem IsVertexConnected'.toIsVertexConnected {G : SimpleGraph V} {k : ℕ}
     exact ⟨⟨y, by grind⟩⟩
 
 
+theorem Subgraph_Connected_Reachable_Implies_Connected {G : SimpleGraph V}
+ {S : Set V} (h : (G.induce S).Connected)
+ (h' : ∀ v ∈ (S : Set V)ᶜ, (∃ w ∈ S, G.Reachable v w)) : G.Connected := by
+  rw[(G.induce S).connected_iff_exists_forall_reachable] at h
+  have g : ∀ u : V, ∃ w ∈ S, G.Reachable u w := by
+    intro u
+    by_cases hu : u ∈ S
+    · use u
+    · obtain ⟨w, _, _⟩ := h' u hu
+      use w
+  rw [SimpleGraph.connected_iff]
+  constructor
+  · obtain ⟨c, hc⟩ := h
+    intro u v
+    obtain ⟨a, haS, hua⟩ := g u
+    obtain ⟨b, hbS, hvb⟩ := g v
+    have hca : G.Reachable (c : V) a := by
+      have h₁ : (G.induce S).Reachable c ⟨a, haS⟩ := hc ⟨a, haS⟩
+      exact h₁.map (Embedding.induce S).toHom
+    have hcb : G.Reachable (c : V) b := by
+      have h₂ : (G.induce S).Reachable c ⟨b, hbS⟩ := hc ⟨b, hbS⟩
+      exact h₂.map (Embedding.induce S).toHom
+    exact ((hua.trans hca.symm).trans hcb).trans hvb.symm
+  · obtain ⟨s⟩ := h.nonempty
+    use s
+
+
+theorem Union_of_two_connected_subgraphs (G : SimpleGraph V) (S₁ S₂ : Set V) :
+  (∀ v : V, v ∈ S₁ ∪ S₂) → ((S₁ ∩ S₂).Nonempty) → (G.induce S₁).Connected
+   → (G.induce S₂).Connected → G.Connected := by
+  intro hsu hsi hs1 hs2
+  obtain ⟨v, hv1, hv2⟩ := hsi
+  rw[connected_iff] at hs1 hs2
+  have g₁ : ∀ u ∈ S₁, G.Reachable v u := by
+    intro u hu
+    have h : (G.induce S₁).Reachable ⟨v, hv1⟩ ⟨u, hu⟩ := hs1.1 ⟨v, hv1⟩ ⟨u, hu⟩
+    exact h.map (Embedding.induce S₁).toHom
+  have g₂ : ∀ u ∈ S₂, G.Reachable v u := by
+    intro u hu
+    have h : (G.induce S₂).Reachable ⟨v, hv2⟩ ⟨u, hu⟩ := hs2.1 ⟨v, hv2⟩ ⟨u, hu⟩
+    exact h.map (Embedding.induce S₂).toHom
+  rw[connected_iff_exists_forall_reachable]
+  use v
+  intro w
+  have hw : w ∈ S₁ ∪ S₂ := by apply hsu
+  rcases hw with g | G
+  · apply g₁; assumption
+  apply g₂; assumption
 end SimpleGraph
