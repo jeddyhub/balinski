@@ -9,6 +9,7 @@ import Polyhedral.Polyhedral.Basic
 import Polyhedral.Polyhedral.Faces
 import Polyhedral.Mathlib.Geometry.Convex.ConvexSpace.Polytope.Face
 import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+import Polyhedral.Icarm.ClimbingGraph
 
 open Convexity Convex SimpleGraph
 
@@ -96,6 +97,29 @@ lemma IncreasingPathLemma {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V
     · exact ⟨(t : X), t.2, hx2 t hc.ne', by grind⟩
     exact absurd (hx1 t) (not_le.mpr hc)
 
+theorem IncreaingPath {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V}
+    (h : isGraphPolytopeGenerated P V G)
+    (f : StrongDual ℝ X) {v : X} (vmem : v ∈ V) (Vne : V.Nonempty)
+    :
+    ∃ (w : X) (wmem : w ∈ V), ((∀ u ∈ V, f u ≤ f w) ∧ (G.Reachable ⟨v, vmem⟩ ⟨w, wmem⟩))  := by
+    have hclimb : climbing (fun x : (V : Type _) => f x.val) G := by
+      unfold climbing
+      intro u hu
+      obtain ⟨u, umem⟩ := u
+      unfold isArgmax at hu
+      push Not at hu
+      have hhu : f u < Finset.max' (Finset.image f V) (Finset.image_nonempty.mpr Vne) := by
+        obtain ⟨⟨w, wmem⟩, hw⟩ := hu
+        exact lt_of_lt_of_le hw (Finset.le_max' _ _ (Finset.mem_image_of_mem _ wmem))
+      have g : (∃ (w : X) (wmem : w ∈ V), G.Adj ⟨u, umem⟩ ⟨w, wmem⟩ ∧ f u < f w) :=
+        IncreasingPathLemma h f umem Vne hhu
+      obtain ⟨w, wmem, hw⟩ := g
+      use ⟨w, wmem⟩
+    obtain ⟨⟨w, wmem⟩, hmax, hreach⟩ :=
+    reachable_of_climbing (f := fun x : (V : Type _) => f x.val) (G := G) hclimb ⟨v, vmem⟩
+    exact ⟨w, wmem, fun u hu => hmax ⟨u, hu⟩, hreach⟩
+
+
 omit [ConvexSpace ℝ X] [TopologicalSpace X] in
 open scoped Pointwise in
 lemma convex_vsub_comm (S : Set X) :
@@ -138,6 +162,15 @@ theorem balinski_1 {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV :
   := finrank_vectorSpan_image_finset_le ℝ id V (n := n - 1) (by unfold n at *; simp at this ⊢;grind)
   grind
 
+theorem induce_induce_connected {W : Type*} {G : SimpleGraph W} {s : Set W} {p : W → Prop}
+    (h : (induce {v | v ∈ s ∧ p v} G).Connected) :
+    (induce {v : ↥s | p ↑v} (induce s G)).Connected := by
+  refine h.map ⟨fun v => ⟨⟨v.1, v.2.1⟩, v.2.2⟩, ?_⟩ ?_
+  · intro a b hab
+    exact hab
+  · rintro ⟨⟨v, hvs⟩, hvp⟩
+    exact ⟨⟨v, hvs, hvp⟩, rfl⟩
+
 theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : Finset.Nonempty V)
 (hG : isGraphPolytopeGenerated P V G) :
   IsVertexConnected G (dimPolytope (V := X) (P.carrier))
@@ -147,9 +180,19 @@ theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : F
         constructor
         · exact balinski_1 hV hG
         · intros S H
-          have v₁ : @Set.Elem (↥V) (↑S)ᶜ := sorry --Cardinality argument (apply H + balinski_1)
+          have v₁ : @Set.Elem (↥V) (↑S)ᶜ := by
+            have hlt : S.card < Fintype.card ↥V := by
+              have h := lt_trans H (balinski_1 hV hG)
+              grind [Nat.card_eq_fintype_card]
+            have hex : ∃ x : ↥V, x ∉ S := by
+              by_contra hcon
+              push Not at hcon
+              rw [Finset.eq_univ_iff_forall.mpr hcon, Finset.card_univ] at hlt
+              exact lt_irrefl _ hlt
+            exact ⟨hex.choose, hex.choose_spec⟩
           obtain ⟨v₁, hv⟩ := v₁
-          have hf : ∃ f : StrongDual ℝ X, ∃ c : ℝ, (f v₁ = c ∧ (∀ s ∈ S, f s = c)):= sorry
+          have hf : ∃ f : StrongDual ℝ X, ∃ c : ℝ,
+          (f v₁ = c ∧ (∀ s ∈ S, f s = c)) ∧ (∃ (v : X) (vmem: v ∈ V), f v ≠ 0) := sorry
           obtain ⟨f, c, hf⟩ := hf
           set S₁ := {v : V | v ∉ S ∧ c ≤ f v}
           set S₂ := {v : V | v ∉ S ∧ f v ≤ c}
@@ -170,9 +213,9 @@ theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : F
           · use ⟨v₁,hv⟩
             constructor
             · simp only [Set.mem_setOf_eq]
-              rw[hf.1]
+              rw[hf.1.1]
             simp only [Set.mem_setOf_eq]
-            rw[hf.1]
-          · sorry --is exactly h1 but type mismatch
-          · sorry --is exactly h2 but type mismatch
+            rw[hf.1.1]
+          · exact induce_induce_connected h1
+          · exact induce_induce_connected h2
 end
