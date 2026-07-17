@@ -1,6 +1,5 @@
 import Polyhedral.Icarm.kconnectivity
 import Polyhedral.Mathlib.Geometry.Convex.ConvexSpace.Polytope.Lattice
-import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Analysis.Convex.Extreme
 import Mathlib.Analysis.Convex.Segment
 import Mathlib.Analysis.Convex.Hull
@@ -10,6 +9,7 @@ import Polyhedral.Polyhedral.Faces
 import Polyhedral.Mathlib.Geometry.Convex.ConvexSpace.Polytope.Face
 import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 import Polyhedral.Icarm.ClimbingGraph
+import Mathlib.Analysis.Normed.Module.Dual
 
 open Convexity Convex SimpleGraph
 
