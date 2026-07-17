@@ -97,7 +97,7 @@ lemma IncreasingPathLemma {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V
     · exact ⟨(t : X), t.2, hx2 t hc.ne', by grind⟩
     exact absurd (hx1 t) (not_le.mpr hc)
 
-theorem IncreaingPath {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V}
+theorem IncreasingPath {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V}
     (h : isGraphPolytopeGenerated P V G)
     (f : StrongDual ℝ X) {v : X} (vmem : v ∈ V) (Vne : V.Nonempty)
     :
@@ -192,7 +192,7 @@ theorem balinski {P : Polytope ℝ X} {V : Finset X} {G : SimpleGraph V} (hV : F
             exact ⟨hex.choose, hex.choose_spec⟩
           obtain ⟨v₁, hv⟩ := v₁
           have hf : ∃ f : StrongDual ℝ X, ∃ c : ℝ,
-          (f v₁ = c ∧ (∀ s ∈ S, f s = c)) ∧ (∃ (v : X) (vmem: v ∈ V), f v ≠ 0) := sorry
+          (f v₁ = c ∧ (∀ s ∈ S, f s = c)) ∧ (∃ (v : X) (vmem: v ∈ V), f v ≠ c) := sorry
           obtain ⟨f, c, hf⟩ := hf
           set S₁ := {v : V | v ∉ S ∧ c ≤ f v}
           set S₂ := {v : V | v ∉ S ∧ f v ≤ c}
